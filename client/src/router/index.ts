@@ -35,7 +35,26 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
-    component: () => import('@/pages/AdminDashboard.vue'),
+    component: () => import('@/pages/EnhancedAdminDashboard.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/pending-users',
+    name: 'PendingUsers',
+    component: () => import('@/pages/PendingUsersPage.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/leave-types',
+    name: 'LeaveTypes',
+    component: () => import('@/pages/LeaveTypesPage.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/department/:department',
+    name: 'DepartmentView',
+    component: () => import('@/pages/DepartmentViewPage.vue'),
+    props: true,
     meta: { requiresAuth: true, role: 'admin' },
   },
   {

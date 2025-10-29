@@ -6,7 +6,11 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'employee' | 'admin';
+  department: string;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
   leaveBalance: number;
+  approvedBy?: mongoose.Types.ObjectId;
+  approvedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -28,7 +32,7 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: false, // Not required initially for pending users
       minlength: 6,
       select: false,
     },
@@ -37,9 +41,26 @@ const userSchema = new Schema<IUser>(
       enum: ['employee', 'admin'],
       default: 'employee',
     },
+    department: {
+      type: String,
+      required: [true, 'Department is required'],
+      trim: true,
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
     leaveBalance: {
       type: Number,
       default: 20,
+    },
+    approvedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    approvedAt: {
+      type: Date,
     },
   },
   {
@@ -49,7 +70,7 @@ const userSchema = new Schema<IUser>(
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   
   try {
     const salt = await bcrypt.genSalt(10);

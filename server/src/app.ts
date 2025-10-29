@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db';
 import authRoutes from './routes/authRoutes';
 import leaveRoutes from './routes/leaveRoutes';
+import leaveTypeRoutes from './routes/leaveTypeRoutes';
+import userManagementRoutes from './routes/userManagementRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 
 // Load environment variables
@@ -34,6 +36,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/leaves', leaveRoutes);
+app.use('/api/leave-types', leaveTypeRoutes);
+app.use('/api/users', userManagementRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['employee', 'admin']).optional(),
+  department: z.string().min(2, 'Department is required'),
+  // Password not required during signup - will be set by admin
 });
 
 export const loginSchema = z.object({
@@ -13,6 +13,7 @@ export const loginSchema = z.object({
 });
 
 export const leaveRequestSchema = z.object({
+  leaveTypeId: z.string().min(1, 'Leave type is required'),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Invalid start date',
   }),
@@ -20,6 +21,7 @@ export const leaveRequestSchema = z.object({
     message: 'Invalid end date',
   }),
   leaveType: z.enum(['sick', 'casual', 'annual', 'unpaid']),
+  isPaid: z.boolean().default(true),
   reason: z.string().min(10, 'Reason must be at least 10 characters'),
 }).refine((data) => {
   const start = new Date(data.startDate);

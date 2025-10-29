@@ -6,8 +6,9 @@
     <a-row :gutter="[16, 16]" style="margin-bottom: 24px">
       <a-col :xs="24" :sm="12" :md="6">
         <div :style="{ padding: '16px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }">
-          <div :style="{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }">Leave Balance</div>
+          <div :style="{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }">Total Leave Balance</div>
           <div :style="{ fontSize: '24px', color: '#52c41a' }">{{ leaveStore.stats?.leaveBalance || 0 }}</div>
+          <div :style="{ fontSize: '12px', color: '#8c8c8c', marginTop: '4px' }">days remaining</div>
         </div>
       </a-col>
       <a-col :xs="24" :sm="12" :md="6">
@@ -29,6 +30,11 @@
         </div>
       </a-col>
     </a-row>
+
+    <!-- Leave Type Balances -->
+    <div :style="styles.card">
+      <LeaveTypeBalances ref="leaveTypeBalancesRef" />
+    </div>
 
     <!-- Leave Calendar -->
     <div :style="styles.card">
@@ -85,6 +91,7 @@ import { useRouter } from 'vue-router';
 import { useLeaveStore } from '@/store/leaveStore';
 import AppLayout from '@/components/AppLayout.vue';
 import LeaveCalendar from '@/components/LeaveCalendar.vue';
+import LeaveTypeBalances from '@/components/LeaveTypeBalances.vue';
 import { styles } from '@/styles/globalStyles';
 import { FileAddOutlined, HistoryOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
@@ -93,6 +100,7 @@ import dayjs from 'dayjs';
 
 const router = useRouter();
 const leaveStore = useLeaveStore();
+const leaveTypeBalancesRef = ref<InstanceType<typeof LeaveTypeBalances> | null>(null);
 
 const columns = [
   { title: 'Leave Type', dataIndex: 'leaveType', key: 'leaveType' },

@@ -11,6 +11,7 @@
         mode="inline"
         @click="handleMenuClick"
       >
+        <!-- Employee Menu -->
         <a-menu-item v-if="isEmployee" key="/">
           <DashboardOutlined />
           <span>Dashboard</span>
@@ -23,10 +24,30 @@
           <HistoryOutlined />
           <span>Leave History</span>
         </a-menu-item>
+        
+        <!-- Admin Menu -->
         <a-menu-item v-if="isAdmin" key="/admin/dashboard">
-          <TeamOutlined />
-          <span>All Requests</span>
+          <DashboardOutlined />
+          <span>Dashboard</span>
         </a-menu-item>
+        <a-menu-item v-if="isAdmin" key="/admin/pending-users">
+          <UserAddOutlined />
+          <span>Pending Users</span>
+          <a-badge v-if="pendingCount > 0" :count="pendingCount" :offset="[10, -5]" />
+        </a-menu-item>
+        <a-menu-item v-if="isAdmin" key="/admin/leave-types">
+          <TagsOutlined />
+          <span>Leave Types</span>
+        </a-menu-item>
+        
+        <!-- Departments Submenu (Admin only) -->
+        <a-sub-menu v-if="isAdmin && departments.length > 0" key="departments">
+          <template #icon><TeamOutlined /></template>
+          <template #title>Departments</template>
+          <a-menu-item v-for="dept in departments" :key="`/admin/department/${dept}`">
+            {{ dept }}
+          </a-menu-item>
+        </a-sub-menu>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -89,7 +110,11 @@ import {
   LogoutOutlined,
   CalendarOutlined,
   DownOutlined,
+  UserAddOutlined,
+  TagsOutlined,
 } from '@ant-design/icons-vue';
+import { userManagementAPI } from '@/api/userManagement';
+import { onMounted } from 'vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -97,6 +122,8 @@ const userStore = useUserStore();
 
 const collapsed = ref(false);
 const selectedKeys = ref<string[]>([route.path]);
+const departments = ref<string[]>([]);
+const pendingCount = ref(0);
 
 const isEmployee = computed(() => userStore.isEmployee);
 const isAdmin = computed(() => userStore.isAdmin);
@@ -116,6 +143,33 @@ const handleLogout = async () => {
   await userStore.logout();
   router.push('/login');
 };
+
+const fetchDepartments = async () => {
+  if (isAdmin.value) {
+    try {
+      const response = await userManagementAPI.getDepartments();
+      departments.value = response.departments;
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+    }
+  }
+};
+
+const fetchPendingCount = async () => {
+  if (isAdmin.value) {
+    try {
+      const response = await userManagementAPI.getPendingUsers();
+      pendingCount.value = response.users.length;
+    } catch (error) {
+      console.error('Failed to fetch pending count:', error);
+    }
+  }
+};
+
+onMounted(() => {
+  fetchDepartments();
+  fetchPendingCount();
+});
 </script>
 
 <style scoped>

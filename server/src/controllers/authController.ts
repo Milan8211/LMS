@@ -15,30 +15,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Create new user
-    const user = await User.create(validatedData);
-
-    // Generate tokens
-    const tokenPayload = {
-      userId: (user._id as any).toString(),
-      email: user.email,
-      role: user.role,
-    };
-
-    const accessToken = generateAccessToken(tokenPayload);
-    const refreshToken = generateRefreshToken(tokenPayload);
-
-    // Set cookies
-    setAuthCookies(res, accessToken, refreshToken);
+    // Create new user with pending status (no password yet)
+    const user = await User.create({
+      name: validatedData.name,
+      email: validatedData.email,
+      department: validatedData.department,
+      role: 'employee',
+      approvalStatus: 'pending',
+      // Password will be set by admin during approval
+    });
 
     res.status(201).json({
-      message: 'User registered successfully',
+      message: 'Registration successful. Your account is pending admin approval.',
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        leaveBalance: user.leaveBalance,
+        department: user.department,
+        approvalStatus: user.approvalStatus,
       },
     });
   } catch (error) {
@@ -54,6 +48,23 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user = await User.findOne({ email: validatedData.email }).select('+password');
     if (!user) {
       res.status(401).json({ message: 'Invalid email or password' });
+      return;
+    }
+
+    // Check approval status
+    if (user.approvalStatus === 'pending') {
+      res.status(403).json({ message: 'Your account is pending admin approval' });
+      return;
+    }
+
+    if (user.approvalStatus === 'rejected') {
+      res.status(403).json({ message: 'Your account has been rejected' });
+      return;
+    }
+
+    // Check if password exists (should exist for approved users)
+    if (!user.password) {
+      res.status(401).json({ message: 'Account not properly configured. Please contact admin.' });
       return;
     }
 
@@ -84,6 +95,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         role: user.role,
+        department: user.department,
         leaveBalance: user.leaveBalance,
       },
     });
@@ -115,6 +127,8 @@ export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<v
         name: user.name,
         email: user.email,
         role: user.role,
+        department: user.department,
+        approvalStatus: user.approvalStatus,
         leaveBalance: user.leaveBalance,
       },
     });
